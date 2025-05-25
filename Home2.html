@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Game Tic Tac Toe dengan Skor dan Animasi Menang</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #3f87a6, #ebf8e1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  .game-container {
+    background: #fff;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+    border-radius: 12px;
+    padding: 20px;
+    width: 320px;
+    text-align: center;
+  }
+  h1 {
+    margin-bottom: 20px;
+    color: #333;
+  }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 80px);
+    grid-template-rows: repeat(3, 80px);
+    gap: 10px;
+    justify-content: center;
+  }
+  .cell {
+    background-color: #68a0cf;
+    border-radius: 8px;
+    font-size: 3rem;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+  .cell:hover:not(.disabled) {
+    background-color: #5a8ac4;
+  }
+  .disabled {
+    cursor: default;
+  }
+  .status {
+    margin-top: 15px;
+    font-size: 1.25rem;
+    color: #333;
+    min-height: 1.4em;
+  }
+  .scoreboard {
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-around;
+    font-weight: 700;
+    color: #333;
+  }
+  .scoreboard div {
+    font-size: 1rem;
+  }
+  button.reset-btn {
+    margin-top: 15px;
+    background-color: #68a0cf;
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button.reset-btn:hover {
+    background-color: #5a8ac4;
+  }
+  /* Animasi menang */
+  @keyframes highlight {
+    0%, 100% { background-color: #4caf50; }
+    50% { background-color: #81c784; }
+  }
+  .win {
+    animation: highlight 1s ease-in-out 3;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>Tic Tac Toe</h1>
+    <div class="board" id="board">
+      <!-- 9 cells akan dibuat di JS -->
+    </div>
+    <div class="status" id="status">Giliran: X</div>
+    <div class="scoreboard">
+      <div>Pemain X: <span id="scoreX">0</span></div>
+      <div>Pemain O: <span id="scoreO">0</span></div>
+      <div>Seri: <span id="scoreDraw">0</span></div>
+    </div>
+    <button class="reset-btn" id="resetBtn">Reset Game</button>
+  </div>
+
+<script>
+  (() => {
+    const boardEl = document.getElementById('board');
+    const statusEl = document.getElementById('status');
+    const resetBtn = document.getElementById('resetBtn');
+    const scoreXEl = document.getElementById('scoreX');
+    const scoreOEl = document.getElementById('scoreO');
+    const scoreDrawEl = document.getElementById('scoreDraw');
+
+    let board = Array(9).fill(null);
+    let currentPlayer = 'X';
+    let gameActive = true;
+    let scores = { X: 0, O: 0, draw: 0 };
+
+    function createBoard() {
+      boardEl.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.dataset.index = i;
+        cell.addEventListener('click', handleCellClick, { once: true });
+        boardEl.appendChild(cell);
+      }
+    }
+
+    function handleCellClick(e) {
+      const index = e.target.dataset.index;
+      if (!gameActive || board[index]) return;
+
+      board[index] = currentPlayer;
+      e.target.textContent = currentPlayer;
+      e.target.classList.add('disabled');
+
+      if (checkWin(currentPlayer)) {
+        statusEl.textContent = `Pemain ${currentPlayer} menang! 🎉`;
+        highlightWin(currentPlayer);
+        gameActive = false;
+        updateScore(currentPlayer);
+        disableBoard();
+        return;
+      }
+
+      if (board.every(cell => cell !== null)) {
+        statusEl.textContent = "Seri! Tidak ada pemenang.";
+        gameActive = false;
+        updateScore('draw');
+        return;
+      }
+
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      statusEl.textContent = `Giliran: ${currentPlayer}`;
+    }
+
+    function checkWin(player) {
+      const winCombos = [
+        [0,1,2],[3,4,5],[6,7,8], // baris
+        [0,3,6],[1,4,7],[2,5,8], // kolom
+        [0,4,8],[2,4,6]          // diagonal
+      ];
+      return winCombos.some(combo =>
+        combo.every(idx => board[idx] === player)
+      );
+    }
+
+    function highlightWin(player) {
+      const winCombos = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      const winningCombo = winCombos.find(combo =>
+        combo.every(idx => board[idx] === player)
+      );
+      if (!winningCombo) return;
+      winningCombo.forEach(idx => {
+        const cell = boardEl.children[idx];
+        cell.classList.add('win');
+      });
+    }
+
+    function disableBoard() {
+      Array.from(boardEl.children).forEach(cell =>
+        cell.classList.add('disabled')
+      );
+    }
+
+    function updateScore(winner) {
+      if (winner === 'X') {
+        scores.X++;
+        scoreXEl.textContent = scores.X;
+      } else if (winner === 'O') {
+        scores.O++;
+        scoreOEl.textContent = scores.O;
+      } else {
+        scores.draw++;
+        scoreDrawEl.textContent = scores.draw;
+      }
+    }
+
+    resetBtn.addEventListener('click', () => {
+      board = Array(9).fill(null);
+      currentPlayer = 'X';
+      gameActive = true;
+      statusEl.textContent = `Giliran: ${currentPlayer}`;
+      createBoard();
+      // Hapus animasi win dari sel
+      Array.from(boardEl.children).forEach(cell => cell.classList.remove('win'));
+    });
+
+    createBoard();
+  })();
+</script>
+</body>
+</html>

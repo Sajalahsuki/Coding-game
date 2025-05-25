@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Game Tebak Angka</title>
+<style>
+  body {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  .game-container {
+    background-color: rgba(0, 0, 0, 0.4);
+    padding: 2rem 3rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    width: 320px;
+    text-align: center;
+  }
+  h1 {
+    margin-bottom: 1rem;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    outline: none;
+  }
+  button {
+    background: #5a67d8;
+    border: none;
+    color: white;
+    padding: 10px 0;
+    font-size: 1.2rem;
+    width: 100%;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: #434190;
+  }
+  .message {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    min-height: 1.5em;
+  }
+  .score, .highscore {
+    margin-top: 1rem;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>Game Tebak Angka</h1>
+    <p>Tebak angka antara 1 sampai 100</p>
+    <input id="guessInput" type="number" min="1" max="100" placeholder="Masukkan tebakanmu" />
+    <button id="guessBtn">Tebak</button>
+    <div class="message" id="message"></div>
+    <div class="score" id="score">Skor: 20</div>
+    <div class="highscore" id="highscore">Skor Tertinggi: 0</div>
+    <button id="restartBtn" style="margin-top:15px; background:#38a169; display:none;">Main Lagi</button>
+  </div>
+
+<script>
+  (() => {
+    const maxScore = 20;
+    let secretNumber = Math.floor(Math.random() * 100) + 1;
+    let score = maxScore;
+    let highscore = 0;
+    const messageEl = document.getElementById('message');
+    const scoreEl = document.getElementById('score');
+    const highscoreEl = document.getElementById('highscore');
+    const guessInput = document.getElementById('guessInput');
+    const guessBtn = document.getElementById('guessBtn');
+    const restartBtn = document.getElementById('restartBtn');
+
+    function displayMessage(message) {
+      messageEl.textContent = message;
+    }
+
+    guessBtn.addEventListener('click', () => {
+      const guess = Number(guessInput.value);
+      if (!guess || guess < 1 || guess > 100) {
+        displayMessage('Masukkan angka valid antara 1 sampai 100!');
+        return;
+      }
+      if (guess === secretNumber) {
+        displayMessage(`Benar! Angka rahasia adalah ${secretNumber}. 🎉`);
+        if (score > highscore) {
+          highscore = score;
+          highscoreEl.textContent = `Skor Tertinggi: ${highscore}`;
+        }
+        guessBtn.disabled = true;
+        restartBtn.style.display = 'block';
+      } else {
+        if (score > 1) {
+          displayMessage(guess > secretNumber ? 'Terlalu tinggi! 😬' : 'Terlalu rendah! 🤔');
+          score--;
+          scoreEl.textContent = `Skor: ${score}`;
+        } else {
+          displayMessage(`Kamu kalah! Angka yang benar adalah ${secretNumber}.`);
+          scoreEl.textContent = 'Skor: 0';
+          guessBtn.disabled = true;
+          restartBtn.style.display = 'block';
+        }
+      }
+      guessInput.value = '';
+      guessInput.focus();
+    });
+
+    restartBtn.addEventListener('click', () => {
+      score = maxScore;
+      secretNumber = Math.floor(Math.random() * 100) + 1;
+      scoreEl.textContent = `Skor: ${score}`;
+      displayMessage('Tebak angka antara 1 sampai 100');
+      guessBtn.disabled = false;
+      restartBtn.style.display = 'none';
+      guessInput.value = '';
+      guessInput.focus();
+    });
+  })();
+</script>
+</body>
+</html>
+

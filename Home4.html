@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Game Teka-Teki Sejarah Indonesia</title>
+<style>
+  body {
+    background: linear-gradient(135deg, #4caf50, #81c784);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 16px;
+  }
+  .container {
+    background-color: rgba(20, 20, 20, 0.8);
+    padding: 24px 32px;
+    border-radius: 12px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    text-align: center;
+  }
+  h1 {
+    margin-bottom: 20px;
+  }
+  .question {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .timer {
+    font-weight: bold;
+    margin-bottom: 16px;
+    font-size: 1.2rem;
+    color: #ffd54f;
+  }
+  input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    outline: none;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 8px;
+    background-color: #2196f3;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover:enabled {
+    background-color: #1976d2;
+  }
+  .message {
+    margin-top: 16px;
+    font-size: 1.1rem;
+    min-height: 1.5em;
+  }
+  .answer-reveal {
+    margin-top: 8px;
+    font-style: italic;
+    color: #a3d8f4;
+  }
+  .scoreboard {
+    margin-top: 24px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    justify-content: space-around;
+  }
+  .scoreboard div {
+    flex: 1;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Teka-Teki Sejarah Indonesia</h1>
+    <div class="timer" id="timer">Waktu tersisa: 20 detik</div>
+    <div class="question" id="question"></div>
+    <input type="text" id="answerInput" placeholder="Masukkan jawaban kamu..." autocomplete="off"/>
+    <button id="submitBtn">Cek Jawaban</button>
+    <div class="message" id="message"></div>
+    <div class="answer-reveal" id="answerReveal"></div>
+    <div class="scoreboard">
+      <div>Benar: <span id="scoreCorrect">0</span></div>
+      <div>Salah: <span id="scoreWrong">0</span></div>
+    </div>
+  </div>
+
+<script>
+  (() => {
+    const questions = [
+      { question: "Siapa proklamator kemerdekaan Indonesia?", answer: "soekarno" },
+
+      { question: "Tahun berapakah Indonesia memproklamasikan kemerdekaannya?", answer: "1945" },
+      { question: "siapa nama presiden ke lima", answer: "megawati" },
+      { question: "siapa nama presiden ke tujuh", answer: "jokowi" },
+      { question: "", answer: "prabawo" },
+      { question: "Siapa presiden pertama Indonesia?", answer: "soekarno" },
+      { question: "Apa nama pulau terbesar di Indonesia?", answer: "kalimantan" },
+      { question: "Apa nama ibukota Indonesia?", answer: "jakarta" },
+      { question: "Siapa pahlawan nasional yang dikenal dengan julukan 'Bapak Pendidikan'?", answer: "ki hajar dewantara" },
+      { question: "Apa nama tarian tradisional dari Bali?", answer: "kecak" },
+      { question: "Apa nama makanan khas Indonesia yang terbuat dari ketan dan santan?", answer: "lemang" },
+      { question: "Siapa pahlawan yang terkenal dengan semboyan 'Merdeka atau Mati'?", answer: "ir. soekarno" },
+      { question: "Apa nama gunung tertinggi di Indonesia?", answer: "puncak jaya" }
+    ];
+
+    let current = 0;
+    let scoreCorrect = 0;
+    let scoreWrong = 0;
+    let timerInterval;
+    const timePerQuestion = 20;
+
+    const questionEl = document.getElementById('question');
+    const answerInput = document.getElementById('answerInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const messageEl = document.getElementById('message');
+    const answerReveal = document.getElementById('answerReveal');
+    const scoreCorrectEl = document.getElementById('scoreCorrect');
+    const scoreWrongEl = document.getElementById('scoreWrong');
+    const timerEl = document.getElementById('timer');
+
+    function normalize(str) {
+      return str.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function loadQuestion(i) {
+      questionEl.textContent = questions[i].question;
+      answerInput.value = '';
+      messageEl.textContent = '';
+      answerReveal.textContent = '';
+      submitBtn.disabled = false;
+      answerInput.disabled = false;
+      answerInput.focus();
+      startTimer();
+    }
+
+    function startTimer() {
+      let timeLeft = timePerQuestion;
+      timerEl.textContent = `Waktu tersisa: ${timeLeft} detik`;
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = `Waktu tersisa: ${timeLeft} detik`;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          messageEl.textContent = `Waktu habis! Jawaban yang benar adalah: ${questions[current].answer}`;
+          scoreWrong++;
+          scoreWrongEl.textContent = scoreWrong;
+          submitBtn.disabled = true;
+          answerInput.disabled = true;
+          nextQuestion();
+        }
+      }, 1000);
+    }
+
+    function nextQuestion() {
+      current++;
+      if (current >= questions.length) {
+        questionEl.textContent = `Permainan selesai! Jawaban benar: ${scoreCorrect}, salah: ${scoreWrong}. Terima kasih sudah bermain!`;
+        answerInput.style.display = 'none';
+        submitBtn.style.display = 'none';
+        timerEl.style.display = 'none';
+        messageEl.textContent = '';
+        answerReveal.textContent = '';
+      } else {
+        loadQuestion(current);
+      }
+    }
+
+    submitBtn.addEventListener('click', () => {
+      clearInterval(timerInterval);
+      const userAnswer = normalize(answerInput.value);
+      const correctAnswer = normalize(questions[current].answer);
+      if (!userAnswer) {
+        messageEl.textContent = "Tolong masukkan jawaban kamu!";
+        startTimer();
+        return;
+      }
+      if (userAnswer === correctAnswer) {
+        scoreCorrect++;
+        scoreCorrectEl.textContent = scoreCorrect;
+        messageEl.textContent = "Jawaban benar! 🎉";
+        submitBtn.disabled = true;
+        answerInput.disabled = true;
+        setTimeout(nextQuestion, 1500);
+      } else {
+        scoreWrong++;
+        scoreWrongEl.textContent = scoreWrong;
+        messageEl.textContent = `Jawaban salah! Jawaban yang benar: ${questions[current].answer}`;
+        submitBtn.disabled = true;
+        answerInput.disabled = true;
+        setTimeout(nextQuestion, 3000);
+      }
+    });
+
+    loadQuestion(current);
+  })();
+</script>
+</body>
+</html>
